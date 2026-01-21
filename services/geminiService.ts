@@ -28,12 +28,20 @@ D) Sugestão de Upgrade (se necessário): Recomende peças e cite a ITX Gamer.
 `;
 
 /**
- * Função de Chat Principal
- * Utiliza o modelo gemini-3-pro-preview para garantir o melhor raciocínio técnico.
+ * Função auxiliar para obter a instância da IA com segurança
  */
+const getAIInstance = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.warn("Aguardando configuração da API Key...");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+};
+
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  // A chave de API é obtida exclusivamente do ambiente seguro process.env.API_KEY
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIInstance();
+  if (!ai) return "Sistema de IA em inicialização. Por favor, aguarde um momento.";
   
   try {
     const response = await ai.models.generateContent({
@@ -52,17 +60,13 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
     return response.text || "Desculpe, tive um problema ao processar seu pedido. Tente novamente.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Houve um erro na comunicação com a central Turbo Boost. A configuração da API está sendo processada.";
+    return "Houve um erro na comunicação com a central Turbo Boost. Verifique se a chave de API está configurada no seu ambiente Vercel.";
   }
 }
 
-/**
- * Analisador de Hardware Inteligente
- * Usa o modelo Pro para cruzamento de dados de performance e sugestões de upgrade precisas.
- */
 export async function analyzeHardware(specs: any) {
-  // Inicialização obrigatória seguindo as diretrizes do SDK @google/genai
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIInstance();
+  if (!ai) return "Sistema de análise em inicialização...";
   
   const prompt = `Analise este setup de PC e forneça um plano de otimização detalhado:
   - Gabinete: ${specs.case}
@@ -81,12 +85,12 @@ export async function analyzeHardware(specs: any) {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.4, // Temperatura baixa para respostas mais exatas e menos criativas
+        temperature: 0.4,
       },
     });
     return response.text;
   } catch (error) {
     console.error("Hardware Analysis Error:", error);
-    return "Erro ao analisar hardware. Certifique-se de que as informações estão corretas ou tente novamente em instantes.";
+    return "Erro ao analisar hardware. Certifique-se de que a API Key foi configurada corretamente no painel do Vercel.";
   }
 }
