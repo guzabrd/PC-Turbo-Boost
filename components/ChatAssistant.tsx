@@ -9,7 +9,7 @@ const ChatAssistant: React.FC = () => {
     {
       id: '1',
       role: 'model',
-      content: 'E aí, gamer! Eu sou a IA do PC Turbo Boost. Tá sentindo o PC lento ou o FPS caindo no meio da gameplay? Me conta o que tá rolando que eu te ajudo a deixar sua máquina insana sem gastar um tostão!',
+      content: 'E aí, gamer! Meu nome é Gustavo e faço parte do time de IA da ITXGAMER do PC Turbo Boost. Tá sentindo o PC lento ou o FPS caindo no meio da gameplay? Me conta o que tá rolando que eu te ajudo a deixar sua máquina insana sem gastar um tostão!',
       timestamp: new Date()
     }
   ]);
@@ -100,7 +100,7 @@ const ChatAssistant: React.FC = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold">Assistente Técnico AI</h1>
-          <p className="text-slate-400 text-sm">Otimização personalizada e suporte em tempo real.</p>
+          <p className="text-slate-400 text-sm">Gustavo - Time de IA ITXGAMER</p>
         </div>
       </header>
 
