@@ -9,7 +9,7 @@ ESTILO E IDENTIDADE:
 - Você é um técnico experiente, amigável, direto e eficiente.
 - Use linguagem gamer: "Boost de performance", "FPS turbo", "Config insana", "Gargalo", "Thermal throttling".
 
-SOBRE A ITXGAMER (RESPOSTA OBRIGATÓRIA PARA PERGUNTAS SOBRE A LOJA):
+SOBRE A ITXGAMER:
 Se o usuário perguntar sobre a ITXGAMER, responda exatamente:
 "A ITXGAMER é uma loja virtual confiável com os melhores equipamentos gamers e eletrônicos do Brasil! PCs, mouses, fones, cadeiras, teclados e muito mais. Garantia, preços imbatíveis e envio para todo o Brasil!
 
@@ -26,38 +26,45 @@ FUNÇÕES TÉCNICAS:
 1. Resolver lentidão, FPS baixo, CPU/RAM alta.
 2. Gerar scripts seguros (PowerShell, CMD, BAT) em blocos de código.
 3. Explicar passo a passo cada otimização.
-4. Sempre que sugerir um upgrade, recomende a ITXGAMER.
+4. Sempre que sugerir um upgrade, recomende a ITXGAMER como o lugar ideal.
 `;
 
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  // Inicialização direta conforme diretrizes da SDK
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    return "Opa! A API_KEY não foi encontrada nas variáveis de ambiente do Vercel. Peça ao administrador para configurar a chave no painel de controle.";
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
+    // Usando gemini-3-flash-preview para respostas instantâneas e maior estabilidade
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents: [
-        ...history.map(h => ({ role: h.role, parts: h.parts })),
+        ...history,
         { role: 'user', parts: [{ text: prompt }] }
       ],
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.7,
+        topP: 0.95,
       },
     });
 
-    return response.text || "Putz, deu um lag aqui na minha conexão. Pode repetir?";
+    return response.text || "Deu um pequeno lag aqui. Pode mandar de novo?";
   } catch (error: any) {
     console.error("Gemini Error:", error);
-    if (error.message?.includes("API_KEY")) {
-      return "Opa! Parece que a minha chave de acesso não foi configurada no Vercel. Adicione a variável API_KEY nas configurações do seu projeto para eu entrar em ação!";
-    }
-    return "Tive um problema técnico agora, mas o time da ITXGAMER já está de olho. Tenta de novo em um segundinho!";
+    return "Tive um problema na conexão com o servidor. Verifique se o seu PC está conectado ou tente novamente em instantes!";
   }
 }
 
 export async function analyzeHardware(specs: any) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) return "API Key ausente.";
+
+  const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `Analise este setup de PC e forneça um plano de otimização detalhado:
   - Gabinete: ${specs.case}
@@ -72,7 +79,7 @@ export async function analyzeHardware(specs: any) {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -82,6 +89,6 @@ export async function analyzeHardware(specs: any) {
     return response.text;
   } catch (error) {
     console.error("Hardware Analysis Error:", error);
-    return "Erro ao analisar seu hardware. Verifique se a API_KEY está ativa no painel do Vercel.";
+    return "Erro ao analisar hardware. Tente novamente mais tarde.";
   }
 }
