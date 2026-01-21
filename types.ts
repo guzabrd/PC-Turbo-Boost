@@ -2,8 +2,7 @@
 export enum View {
   CHAT = 'chat',
   DIAGNOSTIC = 'diagnostic',
-  SCRIPTS = 'scripts',
-  HISTORY = 'history'
+  SCRIPTS = 'scripts'
 }
 
 export interface Message {

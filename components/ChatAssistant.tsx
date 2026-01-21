@@ -2,13 +2,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Copy, Check, Terminal } from 'lucide-react';
 import { chatWithAI } from '../services/geminiService';
-import { Message, Optimization } from '../types';
+import { Message } from '../types';
 
-interface ChatAssistantProps {
-  onApplyOptimization: (opt: Optimization) => void;
-}
-
-const ChatAssistant: React.FC<ChatAssistantProps> = ({ onApplyOptimization }) => {
+const ChatAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -64,7 +60,6 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ onApplyOptimization }) =>
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Simple Markdown-ish code block extractor
   const renderContent = (content: string, msgId: string) => {
     const parts = content.split('```');
     return parts.map((part, index) => {
@@ -134,7 +129,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ onApplyOptimization }) =>
           <div className="flex justify-start">
             <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
               <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
-              <span className="text-xs text-slate-400 font-medium">Analizando cenário para o boost...</span>
+              <span className="text-xs text-slate-400 font-medium">Analisando seu PC para o boost...</span>
             </div>
           </div>
         )}
@@ -152,13 +147,13 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({ onApplyOptimization }) =>
                 handleSend();
               }
             }}
-            placeholder="Ex: 'Meu CS tá com FPS baixo' ou 'Meu PC tá demorando pra ligar'..."
+            placeholder="Ex: 'Meu jogo tá travando' ou 'Meu PC demora para abrir as coisas'..."
             className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none p-3 h-20 placeholder:text-slate-600"
           />
           <div className="flex items-center justify-between px-2 pb-1">
             <div className="flex gap-2">
-              <span className="text-[10px] font-bold text-slate-600 bg-slate-800 px-2 py-1 rounded">Markdown Support</span>
-              <span className="text-[10px] font-bold text-slate-600 bg-slate-800 px-2 py-1 rounded">Shift+Enter for newline</span>
+              <span className="text-[10px] font-bold text-slate-600 bg-slate-800 px-2 py-1 rounded">Suporte a Scripts</span>
+              <span className="text-[10px] font-bold text-slate-600 bg-slate-800 px-2 py-1 rounded">Shift+Enter para pular linha</span>
             </div>
             <button
               onClick={handleSend}

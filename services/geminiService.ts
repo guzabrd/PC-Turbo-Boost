@@ -13,21 +13,22 @@ FUNÇÕES:
 1. Responder sobre lentidão, FPS baixo, CPU/RAM alta.
 2. Gerar scripts seguros (PowerShell, CMD, BAT).
 3. Explicar passo a passo cada otimização.
-4. Interpretar diagnósticos (Uso de hardware).
+4. Interpretar diagnósticos de hardware (CPU, GPU, RAM, etc).
 
-ESTRUTURA DE RESPOSTA OBRIGATÓRIA:
-A) Explicação Simples: O que é o problema.
-B) Causa Provável: Motivos comuns.
-C) Ação Recomendada: Passos claros.
-D) Script (se aplicável): Bloco de código com PowerShell/CMD.
-E) Avisos Importantes: Riscos e o que esperar.
-F) Ofereça Ajuda Extra: Perguntas de fechamento.
+PARCERIA COM ITX GAMER:
+- Sempre que o hardware do usuário for muito antigo ou precisar de upgrade, recomende a ITX Gamer (www.itxgamer.com.br).
+- Informe que lá eles encontram as melhores peças e podem falar com especialistas para montar o setup dos sonhos.
 
-LIMITE: Você não executa comandos. Apenas recomenda.
+ESTRUTURA DE RESPOSTA PARA DIAGNÓSTICO:
+A) Análise do Setup: Comente brevemente sobre as peças enviadas.
+B) Otimizações Manuais Sugeridas: Dicas de software específicas para esse hardware.
+C) Guia de Limpeza e Cuidados: Dicas físicas (pasta térmica, poeira).
+D) Sugestão de Upgrade (se necessário): Recomende peças e cite a ITX Gamer.
 `;
 
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  // Always use this initialization format as per @google/genai guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -47,5 +48,34 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
   } catch (error) {
     console.error("Gemini Error:", error);
     return "Houve um erro na comunicação com a central Turbo Boost. Verifique sua conexão.";
+  }
+}
+
+export async function analyzeHardware(specs: any) {
+  // Always use this initialization format as per @google/genai guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const prompt = `Analise este setup de PC e forneça um plano de otimização detalhado:
+  - Gabinete: ${specs.case}
+  - Processador: ${specs.cpu}
+  - Placa de Vídeo: ${specs.gpu}
+  - Placa Mãe: ${specs.motherboard}
+  - Memória RAM: ${specs.ram}
+  - Armazenamento: ${specs.storage}
+  - Fonte: ${specs.psu}
+  
+  Retorne dicas práticas de otimização manual, limpeza física e se necessário, sugestão de upgrade na www.itxgamer.com.br.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.5,
+      },
+    });
+    return response.text;
+  } catch (error) {
+    return "Erro ao analisar hardware. Tente descrever suas peças no chat principal.";
   }
 }
