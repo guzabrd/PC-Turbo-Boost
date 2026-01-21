@@ -1,0 +1,8 @@
+{
+  "name": "PC Turbo Boost AI",
+  "description": "A high-performance PC optimization assistant that helps you boost FPS and clean your system using AI-generated scripts and technical advice.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
