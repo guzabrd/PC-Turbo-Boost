@@ -9,7 +9,7 @@ const ChatAssistant: React.FC = () => {
     {
       id: '1',
       role: 'model',
-      content: 'SISTEMA OPERACIONAL: GUSTAVO_OS v3.0\nESTADO: ONLINE 🟢\n\nSalve, gamer! Qual é a treta hoje? PC travando, ping alto ou quer extrair aquele overclock maroto? Manda o comando!',
+      content: 'E aí, gamer! Meu nome é Gustavo e faço parte do time de IA da ITXGAMER do PC Turbo Boost. Tá sentindo o PC lento ou o FPS caindo no meio da gameplay? Me conta o que tá rolando que eu te ajudo a deixar sua máquina insana sem gastar um tostão!',
       timestamp: new Date()
     }
   ]);
@@ -42,7 +42,7 @@ const ChatAssistant: React.FC = () => {
     setIsTyping(true);
 
     const apiHistory = messages
-      .slice(1) // Remove a saudação inicial do histórico de contexto
+      .slice(1) 
       .map(m => ({
         role: m.role,
         parts: [{ text: m.content }]
@@ -144,7 +144,6 @@ const ChatAssistant: React.FC = () => {
                   ? 'bg-blue-600 text-white rounded-tr-none' 
                   : 'bg-slate-900/80 backdrop-blur-md text-slate-200 rounded-tl-none border border-white/10'}
               `}>
-                {/* Efeito de Scanline apenas para o robô */}
                 {msg.role === 'model' && <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>}
                 
                 {renderContent(msg.content, msg.id)}
