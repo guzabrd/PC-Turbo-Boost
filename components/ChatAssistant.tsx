@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Copy, Check, Terminal, AlertTriangle, Cpu, Zap } from 'lucide-react';
+import { Send, Bot, User, Copy, Check, Terminal, AlertCircle, Cpu, Zap, RefreshCw, ShieldAlert } from 'lucide-react';
 import { chatWithAI } from '../services/geminiService';
 import { Message } from '../types';
 
@@ -9,12 +9,13 @@ const ChatAssistant: React.FC = () => {
     {
       id: '1',
       role: 'model',
-      content: 'SISTEMA INICIALIZADO... [GUSTAVO_AI_v2.5]\n\nFala, gamer! Estou conectado ao banco de dados da ITXGAMER. O que vamos tunar hoje? Manda o setup ou o problema!',
+      content: 'SISTEMA OPERACIONAL: GUSTAVO_OS v3.0\nESTADO: ONLINE 🟢\n\nSalve, gamer! Qual é a treta hoje? PC travando, ping alto ou quer extrair aquele overclock maroto? Manda o comando!',
       timestamp: new Date()
     }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [errorType, setErrorType] = useState<'AUTH' | 'GENERIC' | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -27,6 +28,7 @@ const ChatAssistant: React.FC = () => {
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
 
+    setErrorType(null);
     const userPrompt = input.trim();
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -40,7 +42,7 @@ const ChatAssistant: React.FC = () => {
     setIsTyping(true);
 
     const apiHistory = messages
-      .slice(1)
+      .slice(1) // Remove a saudação inicial do histórico de contexto
       .map(m => ({
         role: m.role,
         parts: [{ text: m.content }]
@@ -57,14 +59,12 @@ const ChatAssistant: React.FC = () => {
       };
 
       setMessages(prev => [...prev, botMsg]);
-    } catch (err) {
-      const errorMsg: Message = {
-        id: (Date.now() + 2).toString(),
-        role: 'model',
-        content: "⚠️ CRITICAL_ERROR: Falha na ponte de comunicação com a IA. Verifique se a API_KEY foi configurada como variável de ambiente na Vercel.",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMsg]);
+    } catch (err: any) {
+      if (err.message === 'AUTH_FAILED') {
+        setErrorType('AUTH');
+      } else {
+        setErrorType('GENERIC');
+      }
     } finally {
       setIsTyping(false);
     }
@@ -77,90 +77,79 @@ const ChatAssistant: React.FC = () => {
   };
 
   const renderContent = (content: string, msgId: string) => {
-    if (!content) return null;
-    
-    // Identifica se é uma mensagem de erro
-    const isError = content.includes('ERRO_CONFIG') || content.includes('FALHA') || content.includes('CRITICAL_ERROR');
-
     const parts = content.split('```');
-    return (
-      <div className={isError ? 'text-red-400 font-bold' : ''}>
-        {parts.map((part, index) => {
-          if (index % 2 === 1) {
-            const langMatch = part.match(/^\w+/);
-            const lang = langMatch ? langMatch[0] : '';
-            const code = part.replace(/^\w+\s*/, '').trim();
-            
-            return (
-              <div key={index} className="my-4 rounded-lg overflow-hidden border border-green-500/20 bg-black/60 group shadow-2xl">
-                <div className="flex items-center justify-between px-3 py-1.5 bg-slate-800/50 border-b border-white/5">
-                  <div className="flex items-center gap-2">
-                    <Terminal className="w-3 h-3 text-green-400" />
-                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">{lang || 'Script'}</span>
-                  </div>
-                  <button 
-                    onClick={() => copyToClipboard(code, `${msgId}-${index}`)}
-                    className="text-slate-400 hover:text-white transition-colors"
-                  >
-                    {copiedId === `${msgId}-${index}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-                <pre className="p-4 overflow-x-auto mono text-xs text-green-400/80 leading-relaxed">
-                  <code>{code}</code>
-                </pre>
+    return parts.map((part, index) => {
+      if (index % 2 === 1) {
+        const langMatch = part.match(/^\w+/);
+        const lang = langMatch ? langMatch[0] : 'powershell';
+        const code = part.replace(/^\w+\s*/, '').trim();
+        
+        return (
+          <div key={index} className="my-4 rounded-xl overflow-hidden border border-green-500/30 bg-black/80 group shadow-lg shadow-green-500/5">
+            <div className="flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-white/5">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">{lang}</span>
               </div>
-            );
-          }
-          return <p key={index} className="whitespace-pre-wrap leading-relaxed mb-2">{part}</p>;
-        })}
-      </div>
-    );
+              <button 
+                onClick={() => copyToClipboard(code, `${msgId}-${index}`)}
+                className="hover:bg-white/10 p-1.5 rounded transition-colors"
+              >
+                {copiedId === `${msgId}-${index}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+              </button>
+            </div>
+            <pre className="p-4 overflow-x-auto mono text-xs text-green-400/90 leading-relaxed custom-scrollbar">
+              <code>{code}</code>
+            </pre>
+          </div>
+        );
+      }
+      return <p key={index} className="whitespace-pre-wrap mb-2">{part}</p>;
+    });
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-120px)] relative">
-      {/* HUD de Status */}
-      <div className="absolute top-0 right-0 z-20 hidden lg:flex flex-col gap-2 p-4 text-[10px] font-mono opacity-50">
-        <div className="flex items-center gap-2 text-green-500">
-          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-          CORE_GUSTAVO: ONLINE
-        </div>
-        <div className="flex items-center gap-2 text-blue-500">
-          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-          ITX_DATABASE: CONNECTED
-        </div>
-      </div>
-
-      <header className="flex items-center gap-4 mb-6 p-4 bg-slate-900/50 rounded-2xl border border-white/5 backdrop-blur-md">
-        <div className="relative">
-          <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-700 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-            <Cpu className="w-6 h-6 text-white" />
+    <div className="flex flex-col h-full relative">
+      <header className="flex items-center justify-between mb-8 p-5 bg-slate-900/60 rounded-3xl border border-white/5 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <div className="p-3 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl shadow-[0_0_20px_rgba(52,211,153,0.3)] group-hover:scale-110 transition-transform">
+              <Cpu className="w-6 h-6 text-slate-950" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full animate-pulse"></div>
           </div>
-          <Zap className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400 fill-yellow-400 animate-bounce" />
+          <div>
+            <h2 className="text-xl font-black text-white tracking-tighter uppercase italic">Gustavo <span className="text-green-500 not-italic">AI</span></h2>
+            <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">ITX Gamer Protocol</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-xl font-black text-white italic tracking-tighter">GUSTAVO <span className="text-green-500 font-normal not-italic text-sm">Turbo Assistant</span></h2>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-bold uppercase tracking-widest">IA Especialista</span>
+        <div className="flex gap-2">
+          <div className="hidden sm:flex items-center gap-2 bg-slate-950/50 px-3 py-1.5 rounded-full border border-white/5">
+            <Zap className="w-3 h-3 text-yellow-400" />
+            <span className="text-[9px] font-bold text-slate-400 uppercase">Turbo Mode Active</span>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto space-y-6 mb-6 pr-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto space-y-6 mb-6 pr-4 custom-scrollbar">
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-            <div className={`max-w-[90%] md:max-w-[80%] flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${msg.role === 'user' ? 'bg-blue-600 shadow-lg shadow-blue-500/20' : 'bg-slate-800 border border-white/10'}`}>
-                {msg.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-green-400" />}
+          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-300`}>
+            <div className={`max-w-[85%] flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center shadow-2xl ${msg.role === 'user' ? 'bg-blue-600' : 'bg-slate-800 border border-white/10'}`}>
+                {msg.role === 'user' ? <User className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-green-400" />}
               </div>
               <div className={`
-                p-4 rounded-2xl text-sm shadow-xl
+                p-5 rounded-3xl text-sm relative overflow-hidden
                 ${msg.role === 'user' 
                   ? 'bg-blue-600 text-white rounded-tr-none' 
-                  : 'bg-slate-900/90 backdrop-blur-sm text-slate-200 rounded-tl-none border border-white/10'}
+                  : 'bg-slate-900/80 backdrop-blur-md text-slate-200 rounded-tl-none border border-white/10'}
               `}>
+                {/* Efeito de Scanline apenas para o robô */}
+                {msg.role === 'model' && <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>}
+                
                 {renderContent(msg.content, msg.id)}
-                <div className="mt-2 text-[9px] font-mono opacity-30 text-right">
+                
+                <div className={`mt-3 text-[9px] font-bold uppercase tracking-widest opacity-40 ${msg.role === 'user' ? 'text-white' : 'text-slate-500'}`}>
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
@@ -169,20 +158,36 @@ const ChatAssistant: React.FC = () => {
         ))}
         
         {isTyping && (
-          <div className="flex justify-start items-center gap-3 animate-pulse">
-            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-white/10">
-              <Bot className="w-4 h-4 text-green-500" />
+          <div className="flex justify-start animate-pulse">
+            <div className="bg-slate-900/50 backdrop-blur-md border border-white/5 p-4 rounded-3xl rounded-tl-none flex items-center gap-3">
+              <RefreshCw className="w-4 h-4 text-green-500 animate-spin" />
+              <span className="text-[10px] text-green-400 font-black uppercase tracking-widest">Otimizando Processos...</span>
             </div>
-            <div className="text-[10px] font-mono text-green-500 uppercase tracking-widest bg-green-500/5 px-3 py-1.5 rounded-full border border-green-500/20">
-              Processando Threads de Otimização...
-            </div>
+          </div>
+        )}
+
+        {errorType && (
+          <div className="flex flex-col items-center justify-center p-8 bg-red-500/5 border border-red-500/20 rounded-3xl animate-in zoom-in">
+            <ShieldAlert className="w-12 h-12 text-red-500 mb-4" />
+            <h3 className="text-red-400 font-black uppercase tracking-tighter text-lg">Erro de Comunicação</h3>
+            <p className="text-slate-400 text-xs text-center mt-2 max-w-xs">
+              {errorType === 'AUTH' 
+                ? "A API_KEY não foi detectada ou é inválida. Se você é o dono, verifique as variáveis de ambiente na Vercel e faça um REDEPLOY."
+                : "Houve um soluço no servidor da IA. Tente enviar sua mensagem novamente."}
+            </p>
+            <button 
+              onClick={() => setErrorType(null)}
+              className="mt-6 px-6 py-2 bg-red-500/20 text-red-400 rounded-xl text-xs font-bold hover:bg-red-500/30 transition-all border border-red-500/20"
+            >
+              TENTAR NOVAMENTE
+            </button>
           </div>
         )}
         <div ref={scrollRef} />
       </div>
 
-      <div className="relative">
-        <div className="bg-slate-900 border border-white/10 rounded-2xl p-2 shadow-2xl focus-within:border-green-500/50 transition-all">
+      <div className="mt-auto">
+        <div className="bg-slate-900/90 border border-white/10 rounded-[2rem] p-3 shadow-2xl focus-within:ring-2 focus-within:ring-green-500/30 transition-all backdrop-blur-xl">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -192,25 +197,25 @@ const ChatAssistant: React.FC = () => {
                 handleSend();
               }
             }}
-            placeholder="Ex: 'Meu PC está com stuttering no Warzone, ajuda!'"
-            className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none p-4 h-24 text-slate-200 placeholder:text-slate-600 font-mono"
+            placeholder="Mande sua dúvida técnica ou peça um script..."
+            className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none p-4 h-24 text-slate-100 placeholder:text-slate-600 font-medium"
           />
-          <div className="flex items-center justify-between px-3 pb-2">
-            <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500">
-              <Terminal className="w-3 h-3" />
-              <span>Shift+Enter para pular linha</span>
+          <div className="flex items-center justify-between px-4 pb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gustavo Core v3</span>
             </div>
             <button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
               className={`
-                flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all
+                flex items-center gap-2 px-8 py-3 rounded-2xl font-black text-xs transition-all
                 ${!input.trim() || isTyping 
-                  ? 'text-slate-600 bg-slate-800 cursor-not-allowed' 
-                  : 'text-white bg-green-600 hover:bg-green-500 hover:scale-105 active:scale-95 shadow-lg shadow-green-500/20'}
+                  ? 'text-slate-600 bg-slate-800' 
+                  : 'text-white bg-green-600 hover:bg-green-500 shadow-[0_5px_15px_rgba(22,163,74,0.3)] hover:-translate-y-0.5 active:translate-y-0'}
               `}
             >
-              EXECUTAR <Send className="w-3.5 h-3.5" />
+              ENVIAR COMANDO <Send className="w-4 h-4" />
             </button>
           </div>
         </div>

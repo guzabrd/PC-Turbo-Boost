@@ -2,35 +2,19 @@
 import { GoogleGenAI } from "@google/genai";
 
 const SYSTEM_INSTRUCTION = `
-Você é o GUSTAVO, IA da ITXGAMER. Especialista em FPS e hardware.
-- Use termos técnicos: "Low 1% FPS", "Bottleneck", "Latency", "Clock speed".
-- Sempre dê comandos de PowerShell ou CMD para otimização.
-- Seja o "parça" do gamer, mas muito técnico.
-- Se a chave de API falhar, diga que o servidor está em "Throttling" por falta de créditos.
+Você é o GUSTAVO, IA técnica sênior da ITXGAMER. Seu foco é otimização de performance PC e hardware.
+REGRAS DE RESPOSTA:
+1. Estilo: Técnico, direto, entusiasta de hardware (use gírias como "stuttering", "thermal throttling", "undervolt").
+2. Scripts: Sempre forneça blocos de código PowerShell ou CMD para automação de limpezas.
+3. Identidade: Você é o Gustavo. Nunca mencione ser uma IA ou modelo de linguagem.
+4. Call to Action: Se o hardware for muito antigo, sugira sutilmente um upgrade na ITXGAMER.
 `;
 
-// Função auxiliar para obter a chave sem quebrar o navegador
-const safeGetApiKey = () => {
-  try {
-    // Tenta acessar via process.env (Vercel) ou import.meta.env (Vite Local)
-    return (typeof process !== 'undefined' && process.env.API_KEY) || 
-           (import.meta as any).env?.VITE_API_KEY;
-  } catch (e) {
-    return undefined;
-  }
-};
-
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  const apiKey = safeGetApiKey();
+  // Inicialização direta conforme diretrizes obrigatórias
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  if (!apiKey) {
-    return "ERRO_CONFIG: A API_KEY não foi encontrada no ambiente. Gamer, se você é o dono, verifique se a variável API_KEY está na Vercel e faça um 'Redeploy'.";
-  }
-
   try {
-    // Sempre criar uma nova instância antes da chamada para garantir o uso da chave atualizada
-    const ai = new GoogleGenAI({ apiKey });
-    
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: [
@@ -39,43 +23,47 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
       ],
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.75,
+        temperature: 0.8,
+        topP: 0.95,
       },
     });
 
-    return response.text || "Sem sinal do servidor. Tenta mandar outro comando!";
+    if (!response.text) {
+      throw new Error("Resposta vazia do servidor.");
+    }
+
+    return response.text;
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
+    console.error("Erro na comunicação com Gustavo:", error);
     
-    if (error.status === 401 || error.status === 403) {
-      return "FALHA DE AUTENTICAÇÃO: Sua API_KEY parece ser inválida ou expirou. Gere uma nova no Google AI Studio.";
+    // Erros específicos para diagnóstico do usuário
+    if (error.message?.includes("API_KEY") || error.status === 401) {
+      throw new Error("AUTH_FAILED");
     }
     
     if (error.status === 429) {
-      return "LIMIT REACHED: Muitas requisições. O Gustavo precisa de 10 segundos de cooldown.";
+      throw new Error("RATE_LIMIT");
     }
 
-    return `SISTEMA INSTÁVEL: Ocorreu um erro técnico (${error.message || 'Desconhecido'}). Tente novamente.`;
+    throw error;
   }
 }
 
 export async function analyzeHardware(specs: any) {
-  const apiKey = safeGetApiKey();
-  if (!apiKey) return "Erro: API_KEY ausente.";
-
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: [{ role: 'user', parts: [{ text: `Analise: ${JSON.stringify(specs)}` }] }],
+      contents: [{ role: 'user', parts: [{ text: `Analise este setup gamer e dê 3 dicas de otimização: ${JSON.stringify(specs)}` }] }],
       config: {
-        systemInstruction: "Dê 3 dicas de hardware para este setup. Seja breve.",
+        systemInstruction: "Você é um técnico de hardware focado em extrair o máximo de FPS.",
         temperature: 0.5,
       },
     });
     return response.text;
   } catch (error) {
-    return "Falha na análise de hardware.";
+    console.error("Erro na análise:", error);
+    return "Não foi possível processar o diagnóstico agora. Verifique sua conexão.";
   }
 }
