@@ -20,8 +20,16 @@ SOBRE A ITXGAMER E CONTATO:
 "A ITXGAMER é a maior referência em hardware de alta performance. Unidades em São José dos Campos e Campinas-SP. Site: www.itxgamer.com.br. Para suporte técnico especializado via WhatsApp, chame somente no número: (19) 99923-2998."
 `;
 
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.error("ERRO CRÍTICO: API_KEY não configurada nas variáveis de ambiente do Vercel/Ambiente.");
+  }
+  return new GoogleGenAI({ apiKey: apiKey || "" });
+};
+
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = getAIClient();
   
   try {
     const response = await ai.models.generateContent({
@@ -32,44 +40,41 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
       ],
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.8,
-        topP: 0.95,
+        temperature: 0.7,
+        thinkingConfig: { thinkingBudget: 0 }
       },
     });
 
     const text = response.text;
-    if (!text) {
-      throw new Error("Resposta vazia do servidor.");
-    }
-
+    if (!text) throw new Error("Resposta vazia do servidor.");
     return text;
   } catch (error: any) {
-    console.error("Erro na comunicação com a IA:", error);
+    console.error("Erro detalhado no Chat AI:", error);
     throw error;
   }
 }
 
 export async function analyzeHardware(specs: any) {
-  // Inicialização dentro da função para garantir o uso da chave do processo
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-  const prompt = `Analise este setup gamer minuciosamente e dê um veredito técnico completo: ${JSON.stringify(specs)}. Foque em performance para jogos atuais (1080p/1440p).`;
+  const ai = getAIClient();
+  const prompt = `Analise este setup gamer minuciosamente e dê um veredito técnico completo: ${JSON.stringify(specs)}. Foque em performance para jogos atuais.`;
   
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.4,
+        temperature: 0.3,
+        thinkingConfig: { thinkingBudget: 0 }
       },
     });
     
     const text = response.text;
-    if (!text) throw new Error("A IA não retornou dados.");
+    if (!text) throw new Error("Ocorreu um erro ao processar os dados do hardware.");
     
     return text;
-  } catch (error) {
-    console.error("Erro na análise de hardware:", error);
+  } catch (error: any) {
+    console.error("Erro detalhado na Análise de Hardware:", error);
     throw error;
   }
 }

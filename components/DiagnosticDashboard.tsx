@@ -41,36 +41,35 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
     psu: ''
   });
 
-  // Efeito para a animação visual de progresso
   useEffect(() => {
     let interval: any;
     if (step === 'scanning') {
       interval = setInterval(() => {
         setScanProgress(prev => {
-          // Se já temos os resultados, podemos acelerar para o fim
           if (results && prev < 100) {
-             return Math.min(prev + 10, 100);
+             return Math.min(prev + 20, 100);
           }
-          // Caso contrário, progrida lentamente até 95% para aguardar a API
-          if (prev >= 95) return 95;
+          if (error && prev < 100) {
+             return 100;
+          }
+          if (prev >= 98) return 98;
           
-          const next = prev + (100 / (SCAN_LOGS.length * 2));
+          const next = prev + 1.2;
           const logIndex = Math.floor(prev / (100 / SCAN_LOGS.length));
           if (SCAN_LOGS[logIndex] && !scanLog.includes(SCAN_LOGS[logIndex])) {
             setScanLog(old => [...old, SCAN_LOGS[logIndex]].slice(-5));
           }
           return next;
         });
-      }, 300);
+      }, 100);
     }
     
-    // Quando atingir 100% e tivermos resultados, mostramos a tela final
-    if (scanProgress >= 100 && results) {
+    if (scanProgress >= 100 && (results || error)) {
         setStep('results');
     }
 
     return () => clearInterval(interval);
-  }, [step, results, scanProgress, scanLog]);
+  }, [step, results, error, scanProgress, scanLog]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -87,38 +86,55 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
 
     try {
       const analysis = await analyzeHardware(specs);
-      // Armazena o resultado. O useEffect acima cuidará da transição quando a barra encher
       setResults(analysis);
       
       onComplete({
-        cpuUsage: Math.floor(Math.random() * 30) + 10,
-        ramUsage: Math.floor(Math.random() * 40) + 20,
-        diskSpeed: 3500,
-        temp: 65,
-        os: "Windows 11 Pro",
-        score: 88
+        cpuUsage: 12,
+        ramUsage: 32,
+        diskSpeed: 4200,
+        temp: 58,
+        os: "Windows 11 Gamer Pro",
+        score: 95
       });
     } catch (err: any) {
-      console.error(err);
-      setError("Falha na conexão com a inteligência artificial. Verifique se sua internet está estável ou tente novamente.");
-      setStep('results'); // Mostra a tela de resultados com o erro
+      console.error("Falha no diagnóstico:", err);
+      // Se for um erro de autenticação/chave, damos uma dica mais direta no console
+      if (err.message?.includes("API key") || !process.env.API_KEY) {
+        console.warn("DICA TÉCNICA: Verifique se a variável de ambiente API_KEY está configurada no painel do Vercel.");
+      }
+      setError("Não foi possível conectar à IA da ITXGAMER. Verifique sua chave de API nas configurações do Vercel ou sua conexão.");
+      // Deixamos a barra de progresso completar via useEffect para mostrar o erro graciosamente
     }
   };
 
   const renderAnalysis = (content: string) => {
     if (error) {
        return (
-         <div className="flex flex-col items-center gap-4 py-10">
-           <AlertTriangle className="w-12 h-12 text-red-500" />
-           <p className="text-red-400 font-bold text-center">{error}</p>
+         <div className="flex flex-col items-center gap-6 py-12 text-center">
+           <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+              <AlertTriangle className="w-10 h-10 text-red-500" />
+           </div>
+           <div className="max-w-md">
+             <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Falha Crítica no Link AI</h4>
+             <p className="text-slate-400 text-sm font-medium leading-relaxed">{error}</p>
+             <p className="text-[10px] text-slate-600 font-bold uppercase mt-4 tracking-widest italic">Verifique os logs do console (F12) para detalhes técnicos.</p>
+           </div>
+           <button 
+             onClick={() => setStep('input')}
+             className="px-8 py-4 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all border-b-4 border-slate-400 active:scale-95"
+           >
+             RECOMEÇAR DIAGNÓSTICO
+           </button>
          </div>
        );
     }
     return content.split('\n').map((line, i) => {
       if (line.includes('**')) {
-        return <h4 key={i} className="text-green-400 font-black uppercase tracking-tighter mt-4 mb-2 italic">{line.replace(/\*\*/g, '')}</h4>;
+        return <h4 key={i} className="text-green-400 font-black uppercase tracking-tighter mt-8 mb-4 italic text-xl flex items-center gap-2">
+          <Sparkles className="w-5 h-5" /> {line.replace(/\*\*/g, '')}
+        </h4>;
       }
-      return <p key={i} className="mb-2 text-slate-300 leading-relaxed text-sm font-medium">{line}</p>;
+      return <p key={i} className="mb-4 text-slate-300 leading-relaxed text-base font-medium">{line}</p>;
     });
   };
 
@@ -149,7 +165,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                 <input
                   type="text"
                   name="cpu"
-                  placeholder="Ex: Ryzen 5 5600X, i7-12700K..."
+                  placeholder="Ex: Ryzen 5 5600X..."
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-green-500/30 outline-none transition-all placeholder:text-slate-800 font-bold"
                   onChange={handleInputChange}
                   required
@@ -163,7 +179,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                 <input
                   type="text"
                   name="gpu"
-                  placeholder="Ex: RTX 3060, RX 6600 XT..."
+                  placeholder="Ex: RTX 3060..."
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-green-500/30 outline-none transition-all placeholder:text-slate-800 font-bold"
                   onChange={handleInputChange}
                   required
@@ -177,7 +193,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                 <input
                   type="text"
                   name="ram"
-                  placeholder="Ex: 16GB DDR4 3200MHz..."
+                  placeholder="Ex: 16GB DDR4..."
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-green-500/30 outline-none transition-all placeholder:text-slate-800 font-bold"
                   onChange={handleInputChange}
                   required
@@ -193,7 +209,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                 <input
                   type="text"
                   name="motherboard"
-                  placeholder="Ex: B550M, Z690..."
+                  placeholder="Ex: B550M..."
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-green-500/30 outline-none transition-all placeholder:text-slate-800 font-bold"
                   onChange={handleInputChange}
                   required
@@ -202,12 +218,12 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
 
               <label className="block group/field">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3 group-focus-within/field:text-green-500 transition-colors">
-                  <HardDrive className="w-4 h-4" /> Armazenamento (SSD/HD)
+                  <HardDrive className="w-4 h-4" /> Armazenamento
                 </span>
                 <input
                   type="text"
                   name="storage"
-                  placeholder="Ex: SSD NVMe 1TB..."
+                  placeholder="Ex: SSD 1TB..."
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-green-500/30 outline-none transition-all placeholder:text-slate-800 font-bold"
                   onChange={handleInputChange}
                   required
@@ -229,39 +245,41 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
       )}
 
       {step === 'scanning' && (
-        <div className="flex flex-col items-center justify-center py-20 bg-slate-900/40 border border-white/5 rounded-[2.5rem] border-dashed relative overflow-hidden">
+        <div className="flex flex-col items-center justify-center py-24 bg-slate-900/40 border border-white/5 rounded-[2.5rem] border-dashed relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-green-500/5 via-transparent to-transparent"></div>
           
           <div className="relative mb-8">
-            <div className="w-24 h-24 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin"></div>
+            <div className="w-24 h-24 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin shadow-[0_0_30px_rgba(34,197,94,0.2)]"></div>
             <Search className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-green-500 animate-pulse" />
           </div>
 
           <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Processando Dados Técnicos</h3>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-8">Cruzando protocolos de hardware ITX Gamer</p>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-10">Cruzando protocolos de hardware ITX Gamer</p>
 
-          <div className="w-full max-w-md px-4 space-y-4">
-            <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+          <div className="w-full max-w-md px-6 space-y-4">
+            <div className="h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5 p-0.5">
               <div 
-                className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300 shadow-[0_0_15px_rgba(34,197,94,0.5)]"
+                className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300 shadow-[0_0_15px_rgba(34,197,94,0.5)] rounded-full"
                 style={{ width: `${scanProgress}%` }}
               ></div>
             </div>
             
-            <div className="bg-black/40 rounded-xl p-4 border border-white/5 font-mono text-[10px] text-green-500/70 h-32 overflow-hidden flex flex-col justify-end">
+            <div className="bg-black/40 rounded-2xl p-5 border border-white/5 font-mono text-[10px] text-green-500/70 h-32 overflow-hidden flex flex-col justify-end shadow-inner">
               {scanLog.map((log, i) => (
                 <div key={i} className="flex items-center gap-2 animate-in slide-in-from-bottom-1 fade-in">
                   <span className="text-green-800 font-bold">[{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}]</span>
                   <span>{log}</span>
                 </div>
               ))}
-              {results && <div className="text-white font-bold animate-pulse mt-1">✓ Dados recebidos. Finalizando relatório...</div>}
+              {(results || error) && <div className={`font-bold animate-pulse mt-1 ${error ? 'text-red-500' : 'text-white'}`}>
+                {error ? '✗ Conexão interrompida.' : '✓ Relatório pronto.'}
+              </div>}
             </div>
           </div>
         </div>
       )}
 
-      {step === 'results' && (results || error) && (
+      {step === 'results' && (
         <div className="space-y-8 animate-in zoom-in-95 duration-500">
           <div className="bg-slate-900/60 border border-green-500/30 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
              <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
@@ -269,7 +287,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
              </div>
 
              <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-10 border-b border-white/5 pb-8 relative z-10">
-               <div className={`p-5 rounded-[1.5rem] shadow-[0_0_30px_rgba(34,197,94,0.3)] ${error ? 'bg-red-500 text-white' : 'bg-green-500 text-slate-950'}`}>
+               <div className={`p-5 rounded-[1.5rem] shadow-xl ${error ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-green-500 text-slate-950'}`}>
                  {error ? <AlertTriangle className="w-8 h-8" /> : <CheckCircle2 className="w-8 h-8" />}
                </div>
                <div>
@@ -284,18 +302,18 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                    setResults(null);
                    setStep('input');
                  }}
-                 className="md:ml-auto text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
+                 className="md:ml-auto text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5"
                >
                  <RefreshCcw className="w-3 h-3" /> NOVA ANÁLISE
                </button>
              </div>
              
-             <div className="prose prose-invert max-w-none relative z-10">
-                {results ? renderAnalysis(results) : renderAnalysis("")}
+             <div className="prose prose-invert max-w-none relative z-10 font-sans">
+                {renderAnalysis(results || "")}
              </div>
           </div>
 
-          {!error && (
+          {!error && results && (
             <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-[2.5rem] p-10 md:p-14 relative overflow-hidden group">
               <div className="absolute -bottom-10 -right-10 p-12 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
                  <ShoppingCart className="w-64 h-64 text-white" />
