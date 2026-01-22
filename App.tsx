@@ -3,25 +3,25 @@ import React, { useState } from 'react';
 import { 
   Zap, 
   Terminal, 
-  MessageSquare, 
+  HelpCircle, 
   Activity, 
   ChevronRight,
   Menu,
   X,
   ShieldCheck
 } from 'lucide-react';
-import { View, Message, Optimization, DiagnosticData } from './types';
-import ChatAssistant from './components/ChatAssistant';
+import { View, DiagnosticData } from './types';
+import FAQ from './components/FAQ';
 import DiagnosticDashboard from './components/DiagnosticDashboard';
 import ScriptsLibrary from './components/ScriptsLibrary';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>(View.CHAT);
+  const [currentView, setCurrentView] = useState<View>(View.FAQ);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
 
   const navItems = [
-    { id: View.CHAT, label: 'Assistente Turbo', icon: MessageSquare },
+    { id: View.FAQ, label: 'Dúvidas Frequentes', icon: HelpCircle },
     { id: View.DIAGNOSTIC, label: 'Diagnóstico Inteligente', icon: Activity },
     { id: View.SCRIPTS, label: 'Scripts de Aceleração', icon: Terminal },
   ];
@@ -91,8 +91,8 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col min-w-0 pt-16 md:pt-0">
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="max-w-5xl mx-auto h-full flex flex-col">
-            {currentView === View.CHAT && (
-              <ChatAssistant />
+            {currentView === View.FAQ && (
+              <FAQ />
             )}
             {currentView === View.DIAGNOSTIC && (
               <DiagnosticDashboard onComplete={setDiagnostic} />

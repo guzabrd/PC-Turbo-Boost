@@ -1,6 +1,6 @@
 
 export enum View {
-  CHAT = 'chat',
+  FAQ = 'faq',
   DIAGNOSTIC = 'diagnostic',
   SCRIPTS = 'scripts'
 }
