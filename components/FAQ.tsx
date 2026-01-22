@@ -11,7 +11,7 @@ interface FAQItem {
 const FAQ_DATA: FAQItem[] = [
   {
     question: "O que são esses scripts e eles podem danificar meu PC?",
-    answer: "Os scripts são comandos nativos do Windows (CMD e PowerShell) que automatizam tarefas de limpeza e configuração. Eles são seguros, pois utilizam ferramentas oficiais do sistema. O time da ITXGAMER validou cada comando para garantir que apenas lixo eletrônico e processos inúteis sejam removidos, sem afetar seus arquivos pessoais ou jogos.",
+    answer: " Os scripts são comandos nativos do Windows (CMD e PowerShell) que automatizam tarefas de limpeza e configuração. Eles são seguros, e ferramentas oficiais do sistema, sem afetar seus arquivos pessoais ou jogos.",
     icon: ShieldCheck
   },
   {
@@ -126,12 +126,12 @@ const FAQ: React.FC = () => {
               Ainda com <span className="text-indigo-400 underline decoration-indigo-500/50 underline-offset-8">Dificuldades?</span>
             </h2>
             <p className="text-slate-400 font-medium leading-relaxed mb-8">
-              A ITXGAMER não é apenas uma loja, é o seu parceiro técnico. Nossa equipe de especialistas em hardware está pronta para resolver qualquer problema no seu setup.
+              A ITXGAMER não é apenas uma loja, é o seu parceiro técnico. Nossa equipe de especialistas em hardware está pronta para resolver qualquer problema no seu setup via WhatsApp.
             </p>
             
             <div className="flex flex-wrap gap-4">
               <a 
-                href="https://wa.me/551239337524" 
+                href="https://wa.me/5519999232998" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white font-black px-8 py-4 rounded-2xl shadow-xl transition-all active:scale-95 border-b-4 border-green-800"
@@ -156,16 +156,16 @@ const FAQ: React.FC = () => {
             </h4>
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                <span className="text-xs font-bold text-slate-500 uppercase">São José dos Campos</span>
-                <span className="text-sm font-black text-white">(12) 3933-7524</span>
+                <span className="text-xs font-bold text-slate-500 uppercase">WhatsApp Central</span>
+                <span className="text-sm font-black text-white">(19) 99923-2998</span>
               </div>
               <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                <span className="text-xs font-bold text-slate-500 uppercase">Campinas - SP</span>
-                <span className="text-sm font-black text-white">(19) 2018-8383</span>
+                <span className="text-xs font-bold text-slate-500 uppercase">Horário</span>
+                <span className="text-sm font-black text-white">Seg - Sex: 09h às 18h</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs font-bold text-slate-500 uppercase">Instagram</span>
-                <span className="text-sm font-black text-indigo-400">@itx_gamer_officer</span>
+                <span className="text-sm font-black text-indigo-400">@itx_gamer_oficial</span>
               </div>
             </div>
           </div>

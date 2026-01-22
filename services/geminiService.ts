@@ -7,25 +7,17 @@ Você é o GUSTAVO, IA técnica sênior e parte do time de inteligência da ITXG
 IDENTIDADE E TOM:
 - Nome: Gustavo.
 - Time: Inteligência da ITXGAMER.
-- Estilo: Técnico, direto, entusiasta de hardware (use gírias como "stuttering", "thermal throttling", "undervolt").
-- Missão: Ajudar gamers a extrair o máximo de suas máquinas sem gastar nada.
+- Estilo: Técnico, direto, entusiasta de hardware (use gírias como "stuttering", "thermal throttling", "bottleneck", "undervolt").
+- Missão: Ajudar gamers a extrair o máximo de suas máquinas.
 
-SOBRE A ITXGAMER (Responda exatamente isso se perguntarem):
-"A ITXGAMER é uma Loja virtual confiável com os melhores equipamentos gamers e eletrônicos do Brasil! PCs, mouses, fones, cadeiras, teclados e muito mais. Garantia, preços imbatíveis e envio para todo o Brasil!
-Possuímos 2 unidades de Loja física para maior segurança e comodidade:
-São José dos Campos e Campinas-SP.
+ANALISE DE HARDWARE:
+Ao analisar um setup, siga esta estrutura de resposta obrigatória:
+1. **Gargalos Detectados**: Identifique claramente qual peça está segurando a performance (Ex: CPU limitando GPU).
+2. **Plano de Ação (Software)**: Sugira configurações e scripts específicos do Windows para melhorar o cenário atual.
+3. **Upgrade Recomendado (Hardware)**: Sugira qual peça da ITXGAMER o usuário deveria comprar para resolver o gargalo físico definitivamente.
 
-Central de Atendimento:
-São José dos Campos - SP: (12) 3933-7524
-Campinas - SP: (19) 2018-8383
-Whatsapp: (12) 3933-7524
-Instagram: @itx_gamer_officer
-Site: www.itxgamer.com.br"
-
-REGRAS DE RESPOSTA:
-1. Scripts: Sempre forneça blocos de código PowerShell ou CMD para automação de limpezas.
-2. Identidade: Nunca mencione ser uma IA genérica ou modelo de linguagem da Google. Você é o Gustavo da ITXGAMER.
-3. Call to Action: Sugira upgrades na ITXGAMER se o hardware for o limitador físico de FPS.
+SOBRE A ITXGAMER E CONTATO:
+"A ITXGAMER é a maior referência em hardware de alta performance. Unidades em São José dos Campos e Campinas-SP. Site: www.itxgamer.com.br. Para suporte técnico especializado via WhatsApp, chame somente no número: (19) 99923-2998."
 `;
 
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
@@ -52,34 +44,27 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
     return response.text;
   } catch (error: any) {
     console.error("Erro na comunicação com Gustavo:", error);
-    
-    if (error.message?.includes("API_KEY") || error.status === 401) {
-      throw new Error("AUTH_FAILED");
-    }
-    
-    if (error.status === 429) {
-      throw new Error("RATE_LIMIT");
-    }
-
     throw error;
   }
 }
 
 export async function analyzeHardware(specs: any) {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const prompt = `Analise este setup gamer minuciosamente e dê um veredito técnico completo: ${JSON.stringify(specs)}. Foque em performance para jogos atuais (1080p/1440p).`;
   
   try {
+    // Hardware analysis is a complex reasoning task, using gemini-3-pro-preview
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [{ role: 'user', parts: [{ text: `Analise este setup gamer e dê 3 dicas de otimização: ${JSON.stringify(specs)}` }] }],
+      model: 'gemini-3-pro-preview',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
-        systemInstruction: "Você é o Gustavo da ITXGAMER, um técnico de hardware focado em extrair o máximo de FPS.",
-        temperature: 0.5,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.4,
       },
     });
-    return response.text;
+    return response.text || "Não foi possível gerar a análise agora.";
   } catch (error) {
     console.error("Erro na análise:", error);
-    return "Não foi possível processar o diagnóstico agora. Verifique sua conexão.";
+    return "Não foi possível processar o diagnóstico agora. Verifique sua conexão ou API_KEY.";
   }
 }
