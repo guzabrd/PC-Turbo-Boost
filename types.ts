@@ -2,7 +2,8 @@
 export enum View {
   FAQ = 'faq',
   DIAGNOSTIC = 'diagnostic',
-  SCRIPTS = 'scripts'
+  SCRIPTS = 'scripts',
+  GAMES = 'games'
 }
 
 export interface Message {
