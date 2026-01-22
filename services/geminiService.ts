@@ -21,7 +21,7 @@ SOBRE A ITXGAMER E CONTATO:
 `;
 
 export async function chatWithAI(prompt: string, history: { role: 'user' | 'model', parts: { text: string }[] }[]) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   try {
     const response = await ai.models.generateContent({
@@ -37,11 +37,12 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
       },
     });
 
-    if (!response.text) {
+    const text = response.text;
+    if (!text) {
       throw new Error("Resposta vazia do servidor.");
     }
 
-    return response.text;
+    return text;
   } catch (error: any) {
     console.error("Erro na comunicação com a IA:", error);
     throw error;
@@ -49,7 +50,8 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
 }
 
 export async function analyzeHardware(specs: any) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Inicialização dentro da função para garantir o uso da chave do processo
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   const prompt = `Analise este setup gamer minuciosamente e dê um veredito técnico completo: ${JSON.stringify(specs)}. Foque em performance para jogos atuais (1080p/1440p).`;
   
   try {
@@ -61,9 +63,13 @@ export async function analyzeHardware(specs: any) {
         temperature: 0.4,
       },
     });
-    return response.text || "Não foi possível gerar a análise agora.";
+    
+    const text = response.text;
+    if (!text) throw new Error("A IA não retornou dados.");
+    
+    return text;
   } catch (error) {
-    console.error("Erro na análise:", error);
-    return "Não foi possível processar o diagnóstico agora. Verifique sua conexão ou API_KEY.";
+    console.error("Erro na análise de hardware:", error);
+    throw error;
   }
 }

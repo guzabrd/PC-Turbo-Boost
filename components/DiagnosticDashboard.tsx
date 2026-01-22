@@ -30,6 +30,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
   const [scanProgress, setScanProgress] = useState(0);
   const [scanLog, setScanLog] = useState<string[]>([]);
   const [results, setResults] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [specs, setSpecs] = useState({
     case: '',
     cpu: '',
@@ -40,25 +41,36 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
     psu: ''
   });
 
+  // Efeito para a animação visual de progresso
   useEffect(() => {
+    let interval: any;
     if (step === 'scanning') {
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         setScanProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            return 100;
+          // Se já temos os resultados, podemos acelerar para o fim
+          if (results && prev < 100) {
+             return Math.min(prev + 10, 100);
           }
-          const next = prev + (100 / SCAN_LOGS.length);
+          // Caso contrário, progrida lentamente até 95% para aguardar a API
+          if (prev >= 95) return 95;
+          
+          const next = prev + (100 / (SCAN_LOGS.length * 2));
           const logIndex = Math.floor(prev / (100 / SCAN_LOGS.length));
           if (SCAN_LOGS[logIndex] && !scanLog.includes(SCAN_LOGS[logIndex])) {
             setScanLog(old => [...old, SCAN_LOGS[logIndex]].slice(-5));
           }
           return next;
         });
-      }, 600);
-      return () => clearInterval(interval);
+      }, 300);
     }
-  }, [step, scanLog]);
+    
+    // Quando atingir 100% e tivermos resultados, mostramos a tela final
+    if (scanProgress >= 100 && results) {
+        setStep('results');
+    }
+
+    return () => clearInterval(interval);
+  }, [step, results, scanProgress, scanLog]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -67,31 +79,41 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
 
   const handleStartScan = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('scanning');
+    setError(null);
+    setResults(null);
     setScanProgress(0);
-    setScanLog([]);
+    setScanLog(["Iniciando protocolos de comunicação..."]);
+    setStep('scanning');
 
     try {
       const analysis = await analyzeHardware(specs);
-      setTimeout(() => {
-        setResults(analysis);
-        setStep('results');
-        onComplete({
-          cpuUsage: Math.floor(Math.random() * 30) + 10,
-          ramUsage: Math.floor(Math.random() * 40) + 20,
-          diskSpeed: 3500,
-          temp: 65,
-          os: "Windows 11 Pro",
-          score: 88
-        });
-      }, 6000);
-    } catch (error) {
-      setResults("Erro ao processar diagnóstico. O servidor está sobrecarregado. Tente novamente em instantes.");
-      setStep('results');
+      // Armazena o resultado. O useEffect acima cuidará da transição quando a barra encher
+      setResults(analysis);
+      
+      onComplete({
+        cpuUsage: Math.floor(Math.random() * 30) + 10,
+        ramUsage: Math.floor(Math.random() * 40) + 20,
+        diskSpeed: 3500,
+        temp: 65,
+        os: "Windows 11 Pro",
+        score: 88
+      });
+    } catch (err: any) {
+      console.error(err);
+      setError("Falha na conexão com a inteligência artificial. Verifique se sua internet está estável ou tente novamente.");
+      setStep('results'); // Mostra a tela de resultados com o erro
     }
   };
 
   const renderAnalysis = (content: string) => {
+    if (error) {
+       return (
+         <div className="flex flex-col items-center gap-4 py-10">
+           <AlertTriangle className="w-12 h-12 text-red-500" />
+           <p className="text-red-400 font-bold text-center">{error}</p>
+         </div>
+       );
+    }
     return content.split('\n').map((line, i) => {
       if (line.includes('**')) {
         return <h4 key={i} className="text-green-400 font-black uppercase tracking-tighter mt-4 mb-2 italic">{line.replace(/\*\*/g, '')}</h4>;
@@ -221,7 +243,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
           <div className="w-full max-w-md px-4 space-y-4">
             <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-white/5">
               <div 
-                className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]"
+                className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300 shadow-[0_0_15px_rgba(34,197,94,0.5)]"
                 style={{ width: `${scanProgress}%` }}
               ></div>
             </div>
@@ -233,12 +255,13 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                   <span>{log}</span>
                 </div>
               ))}
+              {results && <div className="text-white font-bold animate-pulse mt-1">✓ Dados recebidos. Finalizando relatório...</div>}
             </div>
           </div>
         </div>
       )}
 
-      {step === 'results' && results && (
+      {step === 'results' && (results || error) && (
         <div className="space-y-8 animate-in zoom-in-95 duration-500">
           <div className="bg-slate-900/60 border border-green-500/30 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
              <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
@@ -246,15 +269,21 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
              </div>
 
              <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-10 border-b border-white/5 pb-8 relative z-10">
-               <div className="p-5 bg-green-500 text-slate-950 rounded-[1.5rem] shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-                 <CheckCircle2 className="w-8 h-8" />
+               <div className={`p-5 rounded-[1.5rem] shadow-[0_0_30px_rgba(34,197,94,0.3)] ${error ? 'bg-red-500 text-white' : 'bg-green-500 text-slate-950'}`}>
+                 {error ? <AlertTriangle className="w-8 h-8" /> : <CheckCircle2 className="w-8 h-8" />}
                </div>
                <div>
-                 <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">Relatório de Performance <span className="text-green-500">Gerado</span></h2>
+                 <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">
+                   {error ? "Falha no" : "Relatório de Performance"} <span className={error ? "text-red-500" : "text-green-500"}>{error ? "Diagnóstico" : "Gerado"}</span>
+                 </h2>
                  <p className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] mt-1">ITX Gamer Inteligência de Hardware</p>
                </div>
                <button 
-                 onClick={() => setStep('input')}
+                 onClick={() => {
+                   setError(null);
+                   setResults(null);
+                   setStep('input');
+                 }}
                  className="md:ml-auto text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
                >
                  <RefreshCcw className="w-3 h-3" /> NOVA ANÁLISE
@@ -262,68 +291,70 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
              </div>
              
              <div className="prose prose-invert max-w-none relative z-10">
-                {renderAnalysis(results)}
+                {results ? renderAnalysis(results) : renderAnalysis("")}
              </div>
           </div>
 
-          <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-[2.5rem] p-10 md:p-14 relative overflow-hidden group">
-            <div className="absolute -bottom-10 -right-10 p-12 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
-               <ShoppingCart className="w-64 h-64 text-white" />
-            </div>
-            
-            <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
-              <div className="flex-1">
-                <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 inline-block">
-                  Aviso de Upgrade Recomendado
-                </span>
-                <h3 className="text-4xl font-black text-white mb-6 leading-none italic tracking-tighter uppercase">
-                  O Software Chegou no Limite? <br />
-                  <span className="text-indigo-400">Upgrade Físico é a Solução.</span>
-                </h3>
-                <p className="text-slate-400 font-medium text-lg leading-relaxed mb-10 max-w-xl">
-                  Se a nossa análise detectou que seu hardware é o gargalo, não adianta só script. Na <strong>ITX Gamer</strong>, montamos sua máquina do zero ou enviamos as peças certas para você voar.
-                </p>
-                
-                <div className="flex flex-wrap gap-4">
-                  <a 
-                    href="https://www.itxgamer.com.br" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 bg-white text-indigo-950 font-black px-10 py-5 rounded-2xl hover:bg-indigo-50 transition-all shadow-xl active:scale-95 border-b-4 border-slate-300 uppercase tracking-tighter italic text-sm"
-                  >
-                    VISITAR LOJA OFICIAL <ExternalLink className="w-5 h-5" />
-                  </a>
-                  <a 
-                    href="https://wa.me/5519999232998" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white font-black px-10 py-5 rounded-2xl shadow-xl transition-all active:scale-95 border-b-4 border-green-800 uppercase tracking-tighter italic text-sm"
-                  >
-                    <MessageCircle className="w-5 h-5 fill-current" />
-                    CONSULTORIA WHATSAPP
-                  </a>
-                </div>
+          {!error && (
+            <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-[2.5rem] p-10 md:p-14 relative overflow-hidden group">
+              <div className="absolute -bottom-10 -right-10 p-12 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
+                 <ShoppingCart className="w-64 h-64 text-white" />
               </div>
+              
+              <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
+                <div className="flex-1">
+                  <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 inline-block">
+                    Aviso de Upgrade Recomendado
+                  </span>
+                  <h3 className="text-4xl font-black text-white mb-6 leading-none italic tracking-tighter uppercase">
+                    O Software Chegou no Limite? <br />
+                    <span className="text-indigo-400">Upgrade Físico é a Solução.</span>
+                  </h3>
+                  <p className="text-slate-400 font-medium text-lg leading-relaxed mb-10 max-w-xl">
+                    Se a nossa análise detectou que seu hardware é o gargalo, não adianta só script. Na <strong>ITX Gamer</strong>, montamos sua máquina do zero ou enviamos as peças certas para você voar.
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-4">
+                    <a 
+                      href="https://www.itxgamer.com.br" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-white text-indigo-950 font-black px-10 py-5 rounded-2xl hover:bg-indigo-50 transition-all shadow-xl active:scale-95 border-b-4 border-slate-300 uppercase tracking-tighter italic text-sm"
+                    >
+                      VISITAR LOJA OFICIAL <ExternalLink className="w-5 h-5" />
+                    </a>
+                    <a 
+                      href="https://wa.me/5519999232998" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white font-black px-10 py-5 rounded-2xl shadow-xl transition-all active:scale-95 border-b-4 border-green-800 uppercase tracking-tighter italic text-sm"
+                    >
+                      <MessageCircle className="w-5 h-5 fill-current" />
+                      CONSULTORIA WHATSAPP
+                    </a>
+                  </div>
+                </div>
 
-              <div className="w-full lg:w-72 bg-black/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 space-y-6 shrink-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sinais de Alerta</span>
+                <div className="w-full lg:w-72 bg-black/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 space-y-6 shrink-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sinais de Alerta</span>
+                  </div>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3 text-xs font-bold text-slate-300">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> FPS instável em 1% Low
+                    </li>
+                    <li className="flex items-center gap-3 text-xs font-bold text-slate-300">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Micro-stuttering frequente
+                    </li>
+                    <li className="flex items-center gap-3 text-xs font-bold text-slate-300">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Temperaturas acima de 85ºC
+                    </li>
+                  </ul>
                 </div>
-                <ul className="space-y-4">
-                  <li className="flex items-center gap-3 text-xs font-bold text-slate-300">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> FPS instável em 1% Low
-                  </li>
-                  <li className="flex items-center gap-3 text-xs font-bold text-slate-300">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Micro-stuttering frequente
-                  </li>
-                  <li className="flex items-center gap-3 text-xs font-bold text-slate-300">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Temperaturas acima de 85ºC
-                  </li>
-                </ul>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
