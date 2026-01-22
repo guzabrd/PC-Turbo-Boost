@@ -157,7 +157,6 @@ const SCRIPTS: ScriptItem[] = [
 const ScriptsLibrary: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeShell, setActiveShell] = useState<'ALL' | 'CMD' | 'PowerShell'>('ALL');
-  const [search, setSearch] = useState('');
 
   const filteredScripts = useMemo(() => {
     let result = SCRIPTS;
@@ -166,18 +165,10 @@ const ScriptsLibrary: React.FC = () => {
       result = result.filter(s => s.type === activeShell);
     }
     
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(s => 
-        s.title.toLowerCase().includes(q) || 
-        s.description.toLowerCase().includes(q)
-      );
-    }
-
     // Ordenação fixa: Alto -> Médio -> Baixo
     const impactOrder = { 'Alto': 0, 'Médio': 1, 'Baixo': 2 };
     return [...result].sort((a, b) => impactOrder[a.impact] - impactOrder[b.impact]);
-  }, [activeShell, search]);
+  }, [activeShell]);
 
   const handleCopy = (script: ScriptItem) => {
     navigator.clipboard.writeText(script.code);
@@ -191,7 +182,7 @@ const ScriptsLibrary: React.FC = () => {
         <div>
           <h1 className="text-4xl font-black italic tracking-tighter text-white uppercase">Arsenal de <span className="text-green-500">Performance</span></h1>
           <p className="text-slate-400 text-sm font-medium mt-2 max-w-xl leading-relaxed">
-            Selecione o script ideal para o seu objetivo. Cada comando foi validado pelo time da <span className="text-green-400">ITXGAMER</span> para garantir segurança e ganho real de FPS.
+            Selecione o script ideal para o seu objetivo. Cada comando foi validado para garantir segurança e ganho real de FPS.
           </p>
         </div>
         <div className="flex bg-slate-900/80 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md">
@@ -211,18 +202,6 @@ const ScriptsLibrary: React.FC = () => {
         </div>
       </header>
 
-      {/* Busca */}
-      <div className="relative group">
-        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-green-500 transition-colors" />
-        <input 
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="O que você quer otimizar? Ex: 'FPS', 'RAM', 'Internet'..."
-          className="w-full bg-slate-900/40 border border-white/5 rounded-[2rem] py-5 pl-16 pr-8 text-sm outline-none focus:ring-2 focus:ring-green-500/30 focus:bg-slate-900/80 transition-all font-medium placeholder:text-slate-700"
-        />
-      </div>
-
       {/* Banner de Segurança */}
       <div className="bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 rounded-3xl p-6">
         <div className="flex items-center gap-4">
@@ -230,9 +209,11 @@ const ScriptsLibrary: React.FC = () => {
             <ShieldCheck className="w-6 h-6 text-yellow-500" />
           </div>
           <div>
-            <h4 className="font-black text-yellow-100 uppercase italic tracking-tighter text-sm">Protocolo Administrativo</h4>
+            <h4 className="font-black text-yellow-100 uppercase italic tracking-tighter text-sm">
+              Atenção: Todos os Scripts são para inserir no CMD ou Powershell
+            </h4>
             <p className="text-yellow-500/70 text-[11px] font-bold uppercase tracking-wider mt-0.5">
-              Certifique-se de abrir o terminal como <span className="text-white underline underline-offset-4">Administrador</span> antes de colar qualquer código.
+              Certifique-se de abrir o terminal como Administrador antes de colar qualquer código.
             </p>
           </div>
         </div>

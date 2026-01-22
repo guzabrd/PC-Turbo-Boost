@@ -99,7 +99,7 @@ const GamesLibrary: React.FC = () => {
             Central de <span className="text-green-500">Jogos</span>
           </h1>
           <p className="text-slate-400 text-sm font-medium mt-2 max-w-xl leading-relaxed">
-            Explorar requisitos, dicas de otimização e o "Jornal do Gamer" da <span className="text-green-500">ITXGAMER</span>.
+            Explorar requisitos, dicas de cada jogo e o "Jornal do Gamer"
           </p>
         </div>
 
