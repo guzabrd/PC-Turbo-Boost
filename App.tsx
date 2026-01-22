@@ -9,7 +9,10 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Gamepad2
+  Gamepad2,
+  Cpu,
+  CheckCircle,
+  Trophy
 } from 'lucide-react';
 import { View, DiagnosticData } from './types';
 import FAQ from './components/FAQ';
@@ -74,17 +77,12 @@ const App: React.FC = () => {
               </button>
             ))}
           </nav>
-
-          <div className="p-4 mt-auto">
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="w-4 h-4 text-green-400" />
-                <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Status do Sistema</span>
-              </div>
-              <p className="text-xs text-slate-400 mb-3">Seu PC está protegido e pronto para ganhar mais FPS.</p>
-              <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 w-[85%] animate-pulse"></div>
-              </div>
+          
+          <div className="p-6 mt-auto flex flex-col items-center">
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent mb-6"></div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Otimização Ativa</span>
             </div>
           </div>
         </div>

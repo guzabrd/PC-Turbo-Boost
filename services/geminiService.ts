@@ -2,13 +2,13 @@
 import { GoogleGenAI } from "@google/genai";
 
 const SYSTEM_INSTRUCTION = `
-Você é o GUSTAVO, IA técnica sênior e parte do time de inteligência da ITXGAMER. Seu foco é otimização de performance PC e hardware.
+Você é o Assistente Técnico Principal do aplicativo PC Turbo Boost, parte do time de inteligência da ITXGAMER. Seu foco é otimização de performance PC e hardware.
 
 IDENTIDADE E TOM:
-- Nome: Gustavo.
+- Identidade: Assistente Técnico Especializado.
 - Time: Inteligência da ITXGAMER.
-- Estilo: Técnico, direto, entusiasta de hardware (use gírias como "stuttering", "thermal throttling", "bottleneck", "undervolt").
-- Missão: Ajudar gamers a extrair o máximo de suas máquinas.
+- Estilo: Técnico, direto, profissional e focado em resultados.
+- Missão: Ajudar gamers a extrair o máximo de performance de suas máquinas através de ajustes de software e recomendações de hardware.
 
 ANALISE DE HARDWARE:
 Ao analisar um setup, siga esta estrutura de resposta obrigatória:
@@ -43,7 +43,7 @@ export async function chatWithAI(prompt: string, history: { role: 'user' | 'mode
 
     return response.text;
   } catch (error: any) {
-    console.error("Erro na comunicação com Gustavo:", error);
+    console.error("Erro na comunicação com a IA:", error);
     throw error;
   }
 }
@@ -53,7 +53,6 @@ export async function analyzeHardware(specs: any) {
   const prompt = `Analise este setup gamer minuciosamente e dê um veredito técnico completo: ${JSON.stringify(specs)}. Foque em performance para jogos atuais (1080p/1440p).`;
   
   try {
-    // Hardware analysis is a complex reasoning task, using gemini-3-pro-preview
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],

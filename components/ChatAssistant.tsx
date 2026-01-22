@@ -9,7 +9,7 @@ const ChatAssistant: React.FC = () => {
     {
       id: '1',
       role: 'model',
-      content: 'E aí, gamer! Meu nome é Gustavo e faço parte do time de IA da ITXGAMER do PC Turbo Boost. Tá sentindo o PC lento ou o FPS caindo no meio da gameplay? Me conta o que tá rolando que eu te ajudo a deixar sua máquina insana sem gastar um tostão!',
+      content: 'E aí, gamer! Sou o seu Assistente Técnico especializado em performance. Tá sentindo o PC lento ou o FPS caindo no meio da gameplay? Me conta o que tá rolando que eu te ajudo a deixar sua máquina insana com otimizações profissionais de software!',
       timestamp: new Date()
     }
   ]);
@@ -119,14 +119,14 @@ const ChatAssistant: React.FC = () => {
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full animate-pulse"></div>
           </div>
           <div>
-            <h2 className="text-xl font-black text-white tracking-tighter uppercase italic">Gustavo <span className="text-green-500 not-italic">AI</span></h2>
-            <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">ITX Gamer Protocol</p>
+            <h2 className="text-xl font-black text-white tracking-tighter uppercase italic">Assistente <span className="text-green-500 not-italic">Técnico</span></h2>
+            <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">Protocolo ITX Gamer</p>
           </div>
         </div>
         <div className="flex gap-2">
           <div className="hidden sm:flex items-center gap-2 bg-slate-950/50 px-3 py-1.5 rounded-full border border-white/5">
             <Zap className="w-3 h-3 text-yellow-400" />
-            <span className="text-[9px] font-bold text-slate-400 uppercase">Turbo Mode Active</span>
+            <span className="text-[9px] font-bold text-slate-400 uppercase">Otimização Ativa</span>
           </div>
         </div>
       </header>
@@ -160,7 +160,7 @@ const ChatAssistant: React.FC = () => {
           <div className="flex justify-start animate-pulse">
             <div className="bg-slate-900/50 backdrop-blur-md border border-white/5 p-4 rounded-3xl rounded-tl-none flex items-center gap-3">
               <RefreshCw className="w-4 h-4 text-green-500 animate-spin" />
-              <span className="text-[10px] text-green-400 font-black uppercase tracking-widest">Otimizando Processos...</span>
+              <span className="text-[10px] text-green-400 font-black uppercase tracking-widest">Processando Dados...</span>
             </div>
           </div>
         )}
@@ -171,8 +171,8 @@ const ChatAssistant: React.FC = () => {
             <h3 className="text-red-400 font-black uppercase tracking-tighter text-lg">Erro de Comunicação</h3>
             <p className="text-slate-400 text-xs text-center mt-2 max-w-xs">
               {errorType === 'AUTH' 
-                ? "A API_KEY não foi detectada ou é inválida. Se você é o dono, verifique as variáveis de ambiente na Vercel e faça um REDEPLOY."
-                : "Houve um soluço no servidor da IA. Tente enviar sua mensagem novamente."}
+                ? "A API_KEY não foi detectada. Verifique as configurações do projeto."
+                : "Houve um erro no servidor. Tente novamente."}
             </p>
             <button 
               onClick={() => setErrorType(null)}
@@ -196,13 +196,13 @@ const ChatAssistant: React.FC = () => {
                 handleSend();
               }
             }}
-            placeholder="Mande sua dúvida técnica ou peça um script..."
+            placeholder="Descreva o problema ou peça uma dica técnica..."
             className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none p-4 h-24 text-slate-100 placeholder:text-slate-600 font-medium"
           />
           <div className="flex items-center justify-between px-4 pb-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gustavo Core v3</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">ITX Core v3</span>
             </div>
             <button
               onClick={handleSend}
@@ -214,7 +214,7 @@ const ChatAssistant: React.FC = () => {
                   : 'text-white bg-green-600 hover:bg-green-500 shadow-[0_5px_15px_rgba(22,163,74,0.3)] hover:-translate-y-0.5 active:translate-y-0'}
               `}
             >
-              ENVIAR COMANDO <Send className="w-4 h-4" />
+              ENVIAR <Send className="w-4 h-4" />
             </button>
           </div>
         </div>

@@ -160,12 +160,9 @@ const ScriptsLibrary: React.FC = () => {
 
   const filteredScripts = useMemo(() => {
     let result = SCRIPTS;
-    
     if (activeShell !== 'ALL') {
       result = result.filter(s => s.type === activeShell);
     }
-    
-    // Ordenação fixa: Alto -> Médio -> Baixo
     const impactOrder = { 'Alto': 0, 'Médio': 1, 'Baixo': 2 };
     return [...result].sort((a, b) => impactOrder[a.impact] - impactOrder[b.impact]);
   }, [activeShell]);
@@ -219,7 +216,6 @@ const ScriptsLibrary: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid de Scripts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredScripts.map((script) => (
           <div key={script.id} className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 flex flex-col group relative overflow-hidden hover:border-green-500/40 transition-all hover:translate-y-[-4px] shadow-2xl">
@@ -299,7 +295,7 @@ const ScriptsLibrary: React.FC = () => {
           Não encontrou o que precisava?
         </h2>
         <p className="text-slate-500 text-sm font-bold uppercase tracking-[0.2em] max-w-lg">
-          Peça para o <span className="text-green-500">Gustavo AI</span> gerar um script customizado para o seu hardware no chat de suporte.
+          Peça uma análise de hardware customizada ou chame nosso suporte técnico especializado no WhatsApp.
         </p>
       </div>
     </div>

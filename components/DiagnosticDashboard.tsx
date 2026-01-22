@@ -9,7 +9,6 @@ import {
 import { analyzeHardware } from '../services/geminiService';
 import { DiagnosticData } from '../types';
 
-// Defining props interface to fix the error in App.tsx
 interface DiagnosticDashboardProps {
   onComplete: (data: DiagnosticData | null) => void;
 }
@@ -23,7 +22,7 @@ const SCAN_LOGS = [
   "Avaliando latência de memória RAM...",
   "Checando velocidades de escrita/leitura do SSD...",
   "Calculando eficiência térmica estimada...",
-  "Finalizando relatório técnico com Gustavo AI..."
+  "Finalizando relatório técnico..."
 ];
 
 const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete }) => {
@@ -74,12 +73,9 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
 
     try {
       const analysis = await analyzeHardware(specs);
-      // Aguarda o scan visual terminar antes de mostrar o resultado
       setTimeout(() => {
         setResults(analysis);
         setStep('results');
-        
-        // Fix for App.tsx state sync: sending simulated structured data back to update UI state
         onComplete({
           cpuUsage: Math.floor(Math.random() * 30) + 10,
           ramUsage: Math.floor(Math.random() * 40) + 20,
@@ -90,7 +86,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
         });
       }, 6000);
     } catch (error) {
-      setResults("Erro ao processar diagnóstico. O servidor do Gustavo está sobrecarregado. Tente novamente em instantes.");
+      setResults("Erro ao processar diagnóstico. O servidor está sobrecarregado. Tente novamente em instantes.");
       setStep('results');
     }
   };
@@ -112,7 +108,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
           Diagnóstico <span className="text-green-500 underline decoration-white/10 underline-offset-8">Inteligente</span>
         </h1>
         <p className="text-slate-400 text-sm font-medium mt-3 max-w-2xl leading-relaxed">
-          Nossa IA analisa seu hardware para identificar <span className="text-white">gargalos de FPS</span> e sugerir otimizações precisas para o seu setup.
+          Nossa inteligência analisa seu hardware para identificar <span className="text-white">gargalos de FPS</span> e sugerir otimizações precisas para o seu setup.
         </p>
       </header>
 
@@ -202,7 +198,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                   className="w-full flex items-center justify-center gap-4 bg-green-600 hover:bg-green-500 text-slate-950 font-black italic text-lg py-5 rounded-2xl transition-all shadow-[0_10px_40px_rgba(34,197,94,0.2)] active:scale-95 border-b-4 border-green-800 group"
                 >
                   <Zap className="w-6 h-6 fill-current group-hover:animate-bounce" />
-                  INICIAR SCAN COMPLETO
+                  INICIAR ANÁLISE COMPLETA
                 </button>
               </div>
             </div>
@@ -219,8 +215,8 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
             <Search className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-green-500 animate-pulse" />
           </div>
 
-          <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Análise Cibernética em Curso</h3>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-8">Gustavo AI está cruzando protocolos de hardware</p>
+          <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Processando Dados Técnicos</h3>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-8">Cruzando protocolos de hardware ITX Gamer</p>
 
           <div className="w-full max-w-md px-4 space-y-4">
             <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-white/5">
@@ -254,14 +250,14 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                  <CheckCircle2 className="w-8 h-8" />
                </div>
                <div>
-                 <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">Relatório de Otimização <span className="text-green-500">Gerado</span></h2>
-                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] mt-1">Protocolo Gustavo V3 // ITX Gamer Inteligência</p>
+                 <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">Relatório de Performance <span className="text-green-500">Gerado</span></h2>
+                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em] mt-1">ITX Gamer Inteligência de Hardware</p>
                </div>
                <button 
                  onClick={() => setStep('input')}
                  className="md:ml-auto text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
                >
-                 <RefreshCcw className="w-3 h-3" /> NOVO DIAGNÓSTICO
+                 <RefreshCcw className="w-3 h-3" /> NOVA ANÁLISE
                </button>
              </div>
              
@@ -270,7 +266,6 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
              </div>
           </div>
 
-          {/* Banner Parceiro ITX Gamer VIP */}
           <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-[2.5rem] p-10 md:p-14 relative overflow-hidden group">
             <div className="absolute -bottom-10 -right-10 p-12 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
                <ShoppingCart className="w-64 h-64 text-white" />
@@ -286,7 +281,7 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
                   <span className="text-indigo-400">Upgrade Físico é a Solução.</span>
                 </h3>
                 <p className="text-slate-400 font-medium text-lg leading-relaxed mb-10 max-w-xl">
-                  Se o Gustavo detectou que seu hardware é o gargalo, não adianta só script. Na <strong>ITX Gamer</strong>, montamos sua máquina do zero ou enviamos as peças certas para você voar.
+                  Se a nossa análise detectou que seu hardware é o gargalo, não adianta só script. Na <strong>ITX Gamer</strong>, montamos sua máquina do zero ou enviamos as peças certas para você voar.
                 </p>
                 
                 <div className="flex flex-wrap gap-4">
@@ -332,7 +327,6 @@ const DiagnosticDashboard: React.FC<DiagnosticDashboardProps> = ({ onComplete })
         </div>
       )}
 
-      {/* Dicas Pro Fixas */}
       {step !== 'scanning' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 border-t border-white/5">
           <div className="bg-slate-900/30 border border-white/5 p-8 rounded-[2rem] hover:bg-slate-900/50 transition-all group">
